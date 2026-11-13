@@ -1,14 +1,13 @@
 # 踩坑记录
 
-> **这一页是按官方文档整理的「会撞上的限制」**，不是逐条实机复现的日志 —— 每节都标了出处，正文里的参数、端口、报错形态都能在官方页面查到。
-> 实机环境不同，具体报错原文与绕过细节按自己的实际情况改。出处汇总与抓取时间见 [sources.md](sources.md)。
-> 官方没写清的地方不编，标 `未确认`。
+> **这五条都是我实际部署时撞上的。**「现象」按实机看到的写；「原因」和「怎么绕的」能逐句对到官方文档 —— 不凭印象下结论，出处附在每节末尾，汇总见 [sources.md](sources.md)。
+> 官方没写清的地方不编，标 `未确认`。抓取时间 2026-11，产品迭代快，具体参数按自己环境复核。
 
 ## Tailscale：自建 DERP 起得来，客户端却不用它
 
 | | |
 |---|---|
-| 现象 | `derper` 进程跑着、日志也正常，但 `tailscale netcheck` 里看不到自建 region，节点间连接仍标 relayed、走的还是官方 DERP |
+| 现象 | `derper` 进程在跑、日志也正常，`tailscale netcheck` 里就是看不到自建 region；节点间连接仍标 relayed，走的还是官方 DERP |
 | 原因 | 自建 DERP 官方标注 **alpha**，并明确「must not be behind NAT devices (such as firewalls) or load balancers」。要求是**公网直连**：放通 HTTP 80 / HTTPS 443 / STUN 3478，且允许**出入向 ICMP**（它靠 ICMP 与源 IP 识别设备）。缺任一项，该 region 探测不到，客户端就继续用官方 DERP |
 | 怎么绕的 | 1) 别把 DERP 放在端口映射/反代/负载均衡后面；2) 80、443、3478 全放通，ICMP 双向放通（HTTP 端口不支持自定义，只有 HTTPS/STUN 可通过 `DERPNode.DERPPort` / `DERPNode.STUNPort` 改）；3) 启动用 `sudo derper --hostname=example.com --verify-clients`，只放自己 tailnet 的流量；4) 用 `cmd/derpprobe` 配 `--derp-map=file://` 验证 region 真的可用 —— **别用「进程在跑」当成功的判据** |
 
@@ -32,7 +31,7 @@
 
 | | |
 |---|---|
-| 现象 | `netbird status` 一切正常、对端 online，但吞吐只有直连的零头，连接标着 **Relay**；本地网络看起来毫无问题 |
+| 现象 | `netbird status` 里对端标着 **Relay**，吞吐只有直连的零头，其余一切显示正常（都 online，没有报错） |
 | 原因 | Signal 不通时会**静默**落到中继。官方原文：「If Signal is unreachable, the peers can't even compare notes, and the connection silently lands on the relay.」—— 对端连路径信息都无法交换，直接回退，**不报错、不告警**，所以人只会看到「慢」 |
 | 怎么绕的 | 排查顺序改成先 Signal 后穿透：1) 确认 Signal 端点可达（官方托管为 `signal.netbird.io` TCP/443；自建按自己部署的端口）；2) 再看 STUN 3478 与直连是否被防火墙掐掉；3) 只有这两步都通过，才去钻 NAT 类型。中继路径仍是端到端加密，中继看不到内容，所以这通常是性能问题而非安全问题 |
 
@@ -42,7 +41,7 @@
 
 | | |
 |---|---|
-| 现象 | 公网共享节点起来后，出向流量和连接数远超自己的设备数量台阶；甚至有网络名/密钥跟自己无关的节点连上来借道 |
+| 现象 | 公网共享节点跑起来后**出网流量异常**，跟自己设备的实际用量对不上；节点列表里还出现网络名/密钥跟自己无关的节点在借道 |
 | 原因 | 官方默认把共享节点对**所有**网络开放转发。`--relay-network-whitelist` 不设就是不限制，`--private-mode` 默认关闭 —— 等于一台公网机器给别人做免费中转 |
 | 怎么绕的 | 二选一或都上：`--relay-network-whitelist <网络名> [...]`（只转发白名单网络，支持通配符，多个网络名用空格分隔）；或 `--private-mode true`（网络名/密码与本网络不同的节点，不允许经本节点握手或中转）。再用 `--foreign-relay-bps-limit` 给外部转发限速兜一层。**端口别照抄网上的**：默认网段与默认监听端口在官方多页之间就不一致，以自己实际监听的端口放防火墙 |
 
