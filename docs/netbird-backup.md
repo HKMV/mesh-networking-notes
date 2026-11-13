@@ -1,6 +1,15 @@
 # 备用链路：NetBird 双开并存与手动切优先级
 
 > 备用的意义是**故障域不同**，不是功能更强。所以这两套是并存关系，不是主备自动切换。
+> NetBird 官方术语：控制面叫 **Management**，中继叫 **Relay**，网段接入叫 **Networks**（旧的 Routes 已标 deprecated）。
+
+## 官方对这个链路的两个关键说明
+
+- 直连优先、失败才回退：「NetBird always prefers a direct peer-to-peer (P2P) connection and falls back to a relay server when a direct path can't be established.」
+- **Signal 不可达时会静默走到中继**：官方原文「If Signal is unreachable, the peers can't even compare notes, and the connection silently lands on the relay.」—— 排查「为什么在走中继」时，先看 Signal 通不通，别只看穿透。
+- 走中继仍然是端到端加密的，中继服务看不到内容。
+
+出处：[NetBird · 理解 NAT 与连接](https://docs.netbird.io/about-netbird/understanding-nat-and-connectivity)、[中继排查](https://docs.netbird.io/help/troubleshooting-relayed-connections)。
 
 ## 为什么要双开并存
 
