@@ -22,14 +22,14 @@
 
 ## 中继节点的部署要点
 
-| 要点 | 说明 |
+| 要&nbsp;点 | 说&nbsp;明 |
 |---|---|
-| 端口与协议 | UDP 和 TCP 都要放行，只留一个协议会在某些网络下直接连不上；端口在安全组和本机防火墙两处都要开 |
-| 开机自启 | 用 systemd 或容器 restart 策略托管，机器重启后必须自己回来；手动 `nohup` 起的，早晚会在某次重启后静默消失 |
-| 只允许自己的网络转发 | 官方默认把共享节点对所有网络开放转发，必须用 `--relay-network-whitelist` 限定可服务的网络，或 `--private-mode` 完全关掉对外服务；否则一台公网节点等于给别人做免费中转。出处：[官方文档 · 自建公共共享节点](https://easytier.cn/guide/network/host-public-server.html)、[配置项](https://easytier.cn/guide/network/configurations.html) |
-| 日志与轮转 | 至少保留进程日志和连接日志。排查「为什么走中继了」时只能靠连接日志，出问题再去开日志就晚了 |
-| 监控 | 进程存活 + 端口可连 + 至少一个 peer 在线，三项都要有；只看进程存活会漏掉「进程在、转发不通」 |
-| 资源 | 中继吃的是带宽不是 CPU，但连接数多时注意文件描述符上限和 UDP 缓冲区 |
+| 端口&nbsp;与&nbsp;协议 | UDP 和 TCP 都要放行，只留一个协议会在某些网络下直接连不上；端口在安全组和本机防火墙两处都要开 |
+| 开机&nbsp;自启 | 用 systemd 或容器 restart 策略托管，机器重启后必须自己回来；手动 `nohup` 起的，早晚会在某次重启后静默消失 |
+| 只允许&nbsp;自己的&nbsp;网络转发 | 官方默认把共享节点对所有网络开放转发，必须用 `--relay-network-whitelist` 限定可服务的网络，或 `--private-mode` 完全关掉对外服务；否则一台公网节点等于给别人做免费中转。出处：[官方文档 · 自建公共共享节点](https://easytier.cn/guide/network/host-public-server.html)、[配置项](https://easytier.cn/guide/network/configurations.html) |
+| 日志&nbsp;与&nbsp;轮转 | 至少保留进程日志和连接日志。排查「为什么走中继了」时只能靠连接日志，出问题再去开日志就晚了 |
+| 监&nbsp;控 | 进程存活 + 端口可连 + 至少一个 peer 在线，三项都要有；只看进程存活会漏掉「进程在、转发不通」 |
+| 资&nbsp;源 | 中继吃的是带宽不是 CPU，但连接数多时注意文件描述符上限和 UDP 缓冲区 |
 
 ## 客户端侧
 

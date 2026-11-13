@@ -6,6 +6,8 @@
 
 ## 速查表
 
+> 这张表六款并排，窄屏（手机或窄窗口）需要横向拖动才能看全；拆开逐款看要点在下面的「逐款要点」。
+
 | 维度 | EasyTier | NetBird | Tailscale | ZeroTier | vnt |
 |---|---|---|---|---|---|
 | 协议基础 | 自有隧道，加密可选 AES-GCM / WireGuard；官方**未**称「基于 WireGuard」 | 官方明确「WireGuard overlay」 | 官方明确基于 WireGuard | **自有协议**（官方：「original」，分 VL1 传输层 / VL2 以太网仿真层） | 官方未说明数据面协议，仅「多通道 UDP」+ 传输层 tcp-tls / quic / wss |
