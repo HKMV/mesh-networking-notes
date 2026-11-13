@@ -16,15 +16,17 @@
 
 出处：[Custom DERP servers（alpha、限制清单、端口表、`--verify-clients`、`derpprobe`）](https://tailscale.com/docs/reference/derp-servers/custom-derp-servers)
 
-## ZeroTier：自建 controller 卡在许可上
+## ZeroTier：按旧教程配 moon，新版里它已经没了
 
 | | |
 |---|---|
-| 现象 | 想彻底自控，按官方 controller 文档动手，评审时翻到仓库 `nonfree/` 的许可文本 —— source-available，**仅限非商业**；商用要单独谈授权 |
-| 原因 | 可自建的是 **network controller**，但代码位于仓库 `nonfree/`，不在 `node/ osdep/ service/` 的 MPL-2.0 范围内。另一层：root servers（planet）由官方运营，自建 root 在官方口径里属 **enterprise engagement**，没有 DIY 步骤 |
-| 怎么绕的 | 非商业自用可自建 controller；商用要么走官方 Central，要么选许可干净的方案（EasyTier LGPL-3.0 / NetBird BSD-3+AGPLv3 / vnt Apache-2.0）。**顺带**：现文档里已经没有 "moon" 这个概念，照旧教程配 moon 会找不到对应配置项，别怀疑自己看错文档 |
+| 现象 | 照旧教程自建 root server（moon）来加速/当中继，新版客户端上找不到对应入口，现文档里也搜不到 moon 的任何说明；想改用自建 controller 顶上，发现默认发行包里根本没有 controller |
+| 原因 | 1.16.0（2025-08-21）把这块整组换掉了。官方 release notes 原文：「**"Moons" are now considered even more extra *deprecated* and should not be used in new deployments.**」替代品是 **network-specific relays**（当时标 preview / beta）。同一版还改了构建：「**Default binary builds no longer contain the controller.**」—— 自建 controller 要 `make ZT_NONFREE=1`，而带 `ZT_NONFREE` 构建出来的产物许可从 MPL 变成商业专有 |
+| 怎么绕的 | 别再按 moon 教程折腾，那条路官方已经不给了。中继改用 **network-specific relays**（还是 preview，上生产前自己压测）或走官方托管；确实要自建控制面，就得接受 `ZT_NONFREE=1` + 商业许可，那就不是「自建省掉授权」而是「换一种授权」—— 方案选型时这条要提前摆到桌面上 |
 
-出处：[What is a controller](https://docs.zerotier.com/what-is-a-controller/)、[Controller](https://docs.zerotier.com/controller/)、许可证据见 [sources.md](sources.md)
+**顺带**：moons 之外，root servers（planet）仍由官方运营，自建 root 在官方口径里属 enterprise engagement，没有 DIY 步骤。
+
+出处：[RELEASE-NOTES.md（1.16.0：moons deprecated、network-specific relays、默认不含 controller、ZT_NONFREE 的许可变化）](https://github.com/zerotier/ZeroTierOne/blob/master/RELEASE-NOTES.md)、[What is a controller](https://docs.zerotier.com/what-is-a-controller/)
 
 ## NetBird：显示 connected，其实在走中继
 
@@ -50,14 +52,14 @@
 
 | | |
 |---|---|
-| 现象 | 照 `rustvnt.com` 抄 `vnt-cli -w ...` 落地，2.0 的发行包里没有 `vnt-cli` 这个二进制，`-w` 也不是那个意思；换写法又提示参数不认识 |
-| 原因 | 文档站内容停在 **1.x**，仓库 README 是 **2.0**，官方原话「vnt2.0 整体重构了一遍，和 1.0 不兼容」。2.0 的二进制叫 `vnt2_cli`（后台看状态用 `vnt2_ctrl`），组网是 `-k <组网编号> -s <服务端地址:端口>`，例：`./vnt2_cli -k 123456 -s vnt2.rustvnt.com:29872` |
-| 怎么绕的 | 先 `--version` 定版本，参数**一律照仓库 README 对应版本**抄，文档站只当概念参考。另两条同源坑：**未设置密码时节点间数据不加密**（必须设）；虚拟 IPv6 段 `fd76:6e74::/96` 不进 NAT / 端口映射 / 子网出口，别指望它当出口地址 |
+| 现象 | 照文档站 `rustvnt.com` 抄 `vnt-cli` 那一套参数启动，客户端起不来（二进制/参数对不上）；换成 2.0 之后才跑通 |
+| 原因 | 文档站内容停在 **1.x**（`vnt-cli`、`-w`），仓库 README 已经是 **2.0**，官方原话「vnt2.0 整体重构了一遍，和 1.0 不兼容」。2.0 的二进制叫 `vnt2_cli`（后台看状态用 `vnt2_ctrl`），组网是 `-k <组网编号> -s <服务端地址:端口>`，例：`./vnt2_cli -k 123456 -s vnt2.rustvnt.com:29872` |
+| 怎么绕的 | 就是换成 2.0 走通的：按 README 拿 `vnt2_cli`，`-k` 组网编号 + `-s` 服务端地址起来，参数**一律照仓库 README 对应版本**抄，文档站只当概念参考。另两条同源坑：**未设置密码时节点间数据不加密**（必须设）；虚拟 IPv6 段 `fd76:6e74::/96` 不进 NAT / 端口映射 / 子网出口，别指望它当出口地址 |
 
 出处：[vnt README（2.0，参数以此为准）](https://github.com/vnt-dev/vnt/blob/main/README.md)、[文档站（1.x，注意断层）](https://rustvnt.com/guide/introduction.html)
 
 ## 这五条放在一起看
 
 - **三条是「默认值 / 默认信任范围」问题**：Tailscale 的网络位置（默认不可能在 NAT 后）、EasyTier 的转发范围（默认不限）、vnt 的加密（默认靠密码决定开关）。共同点是**默认能跑通**，所以不会在部署时暴露，而是运行一段时间后由流量、性能或评审把它们翻出来。
-- **两条是「文档与代码不同步」**：vnt 文档站落后一个大版本、ZeroTier 的许可藏在 `nonfree/` 而不是首页。
+- **两条是「文档落后于代码」**：vnt 的文档站落后一个大版本、ZeroTier 的 moon 已从文档与默认构建里退场却只在 release notes 里说。这两条的共同点是**照文档做会失败**，而且失败方式不像配置错误，像是「这功能不存在了」，很容易被当成自己环境的问题查半天。
 - 因此选型时的检查动作很具体：**中继放哪、谁能借道、加密开没开、文档版本与二进制版本是否对得上**。这四条比功能列表更能决定后期维不维护得下去。

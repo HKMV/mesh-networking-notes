@@ -32,6 +32,7 @@
 - root 宕机行为：https://docs.zerotier.com/faq/rootdowntime/
 - 中继（含自建 TCP relay）：https://docs.zerotier.com/relay/ 、https://docs.zerotier.com/faq/relaying/
 - 兼容性分级（Tier1/2/3）：https://docs.zerotier.com/compatibility/
+- Release notes（1.16.0：moons 标 deprecated、network-specific relays、默认构建不含 controller、`ZT_NONFREE` 的许可变化）：https://github.com/zerotier/ZeroTierOne/blob/master/RELEASE-NOTES.md
 - 二层桥接：https://docs.zerotier.com/bridging/
 - 物理网段路由：https://docs.zerotier.com/route-between-phys-and-virt/
 
@@ -74,7 +75,8 @@
 - Headscale 的许可证未核实。
 
 **ZeroTier**
-- 自建 root server 只有「属 enterprise engagement」的表述，无 DIY 步骤；旧文档的 "moon" 概念在现文档中未出现。
+- 自建 root server 只有「属 enterprise engagement」的表述，无 DIY 步骤。
+- moons（自建 root）的去向：现文档已无 moon 页面（`docs.zerotier.com/moon/` 等路径实测 404），但官方在 `RELEASE-NOTES.md` 1.16.0（2025-08-21）里写明「"Moons" are now considered even more extra *deprecated* and should not be used in new deployments.」，替代方案 network-specific relays 当时仍是 preview / beta。**结论只在 release notes 里，不在文档正文** —— 照文档站查是查不到的。
 - 托管面板 ZeroTier Central 能否自建：文档有 "Install Central" 入口，但对应页面抓不到内容，未确认。
 - `docs.zerotier.com/rfc4193/`、`/6plane/` 返回 404，IPv6 细节只能引自协议页与术语页。
 

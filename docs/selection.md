@@ -11,11 +11,11 @@
 | 协议基础 | 自有隧道，加密可选 AES-GCM / WireGuard；官方**未**称「基于 WireGuard」 | 官方明确「WireGuard overlay」 | 官方明确基于 WireGuard | **自有协议**（官方：「original」，分 VL1 传输层 / VL2 以太网仿真层） | 官方未说明数据面协议，仅「多通道 UDP」+ 传输层 tcp-tls / quic / wss |
 | 是否需要中心组件 | **不需要**（官方：「没有也不需要类似 ZeroTier、Tailscale 的中心控制面板」） | 需要：Management / Signal / Relay 四组件 | 需要：coordination server（单点中心） | 需要：root servers（planet）+ network controller 两级 | 默认需要服务端 vnts；官方另称支持「完全无服务器组网」 |
 | 能否自建中心 | 无中心可自建；可选 `--config-server` 下发配置 | **能**，官方 self-hosted quickstart / advanced | **官方不提供**，控制面闭源；官方承认第三方 Headscale | **能**，但 controller 在仓库 `nonfree/`，**仅限非商业** | vnts 可自建（服务端许可证未确认） |
-| 中继/转发自建 | 能，「共享节点」，可 `--relay-network-whitelist` 限制或 `--private-mode` 关闭 | 能，relay 可自建（relay 目录 AGPLv3） | 能，custom DERP，官方标注 **alpha** | 部分：TCP relay 可自建；root 兼作中继，自建 root 属 enterprise | 能，vnts 即中继 |
+| 中继/转发自建 | 能，「共享节点」，可 `--relay-network-whitelist` 限制或 `--private-mode` 关闭 | 能，relay 可自建（relay 目录 AGPLv3） | 能，custom DERP，官方标注 **alpha** | 部分：TCP relay 可自建；moons（自建 root）已被官方标 deprecated，替代的 network-specific relays 仍是 preview | 能，vnts 即中继 |
 | 二层能力 | 官方未提及（只有 TUN / 三层） | 未见二层表述 | 官方无 L2 桥接；文档说明工作在 network layer，广播/组播行为可能不同 | **原生支持**，Layer 2 Bridge，以太网仿真 | 支持 `tap` 模式，完整透传 Ethernet 帧（仅 README 一句） |
 | 子网/整网段 | 支持，「子网代理」（点对网 / 网对网） | 支持，「Networks」（旧 Routes 已废弃） | 支持，「subnet routers」 | 支持，「Managed Routes」 | 支持，「点对网 / 网对网」 |
 | IPv6 | 支持 `--ipv6` 双栈（虚拟地址分配细节未确认） | 支持双栈 overlay，每账号独立 IPv6 前缀 | 支持，每设备 `fd7a:115c:a1e0::/48` ULA | 支持，RFC4193 / 6PLANE | 有虚拟 IPv6（`fd76:6e74::/96`），但不进 NAT / 端口映射 / 子网出口 |
-| 许可 | 仓库 **LGPL-3.0** | 客户端 BSD-3；`management/ signal/ relay/ combined/` 为 **AGPLv3** | 客户端 BSD-3；**控制面闭源** | `node/ osdep/ service/` 等 **MPL-2.0**；`nonfree/`（含 controller）为 source-available **仅非商业** | **Apache-2.0**（服务端 vnts 未见 LICENSE，未确认） |
+| 许可 | 仓库 **LGPL-3.0** | 客户端 BSD-3；`management/ signal/ relay/ combined/` 为 **AGPLv3** | 客户端 BSD-3；**控制面闭源** | `node/ osdep/ service/` 等 **MPL-2.0**；controller 为**商业** source-available（1.16.0 起默认构建**不含** controller） | **Apache-2.0**（服务端 vnts 未见 LICENSE，未确认） |
 | 官方平台 | Win / macOS / Linux / FreeBSD / Android，含 x86/ARM/MIPS | Linux / macOS / Windows / Android / iOS + NAS、路由固件、容器 | macOS / iOS / Windows / Linux / Android + 容器、NAS、OPNsense | Tier1：Win / macOS / Linux / iOS / Android / Docker；Tier2：FreeBSD / OpenWRT / OPNsense 等 | 官方只列 Win / macOS / Linux / Android（iOS 走 WireGuard 接入） |
 
 ## 逐款要点
@@ -48,8 +48,8 @@
 
 - 协议是自有实现，不是 WireGuard；VL2 层直接做以太网仿真，所以**二层桥接是原生能力**，这是它跟另外几款最本质的区别。
 - 两级中心：root servers（planet，官方运营）与 network controller。没有 controller 时只有 ad-hoc 网络（公开、无访问控制）。
-- **自建 controller 有个大坑**：官方提供自建方案，但代码位于仓库 `nonfree/`，许可是 source-available **仅限非商业使用**，商用要单独谈商业许可；自建根节点在官方口径里属于 enterprise engagement。
-- 中继可自建的是 TCP relay（HTTPS 回退，官方慢），root 兼作中继那条路没有 DIY 指引。
+- **自建 controller 的现实**：官方提供自建方案，但 1.16.0 起「Default binary builds no longer contain the controller」，要 `make ZT_NONFREE=1` 自建，而带 `ZT_NONFREE` 构建产物的许可从 MPL 变成**商业专有** —— 所以这条路不是「自建省授权」，是「换一种授权」。自建根节点在官方口径里属 enterprise engagement。
+- 中继可自建的是 TCP relay（HTTPS 回退，官方慢）。自建 root（**moon**）这条路官方已标 deprecated、不应在新部署中使用，替代的 **network-specific relays** 当时仍是 preview / beta —— 这条结论只在 release notes 里，文档站查不到，具体见 [pitfalls.md](pitfalls.md)。
 
 ### vnt
 
